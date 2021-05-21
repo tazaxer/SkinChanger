@@ -13,7 +13,7 @@ public final class SkinChanger extends JavaPlugin {
     public void onEnable() {
         // Plugin startup logic
         new CommandSkin(this);
-
+        new CommandFoo(this);
         this.utils = new Utils(this);
     }
 
