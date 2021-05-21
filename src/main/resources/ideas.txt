@@ -1,0 +1,16 @@
+nick plugin
+
+change ur name
+change ur skin
+
+disguise plugin
+
+change ur skin
+change ur name and skin
+
+cmds
+
+/skin <name> ←
+/disguiseplayer <name> ←
+/nick - OPEN GUI
+/skinLib

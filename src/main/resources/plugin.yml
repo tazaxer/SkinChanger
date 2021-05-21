@@ -1,0 +1,17 @@
+name: SkinChanger
+version: ${project.version}
+main: net.unpluggedmc.skinchanger.SkinChanger
+api-version: 1.16
+authors: [ DennisUnplugged ]
+description: The plugin to change your skin and disguise as every player you wish!
+website: www.unpluggedmc.net
+
+commands:
+  skin:
+    description: The command to change your skin!
+    usage: §cWrong Syntax! /skin <skinOwner> [targetPlayer]
+  foo:
+    description: The test command!
+    permission: skinchanger.commands.foo
+    aliases: [test]
+    usage: §cWrong Syntax! /foo [possibleArgs]
