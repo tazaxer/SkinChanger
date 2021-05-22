@@ -16,6 +16,7 @@ public final class SkinChanger extends JavaPlugin {
         new CommandFoo(this);
         this.utils = new Utils(this);
 
+        getLogger().info("SkinChanger enabled!");
     }
 
     public Utils utils() {

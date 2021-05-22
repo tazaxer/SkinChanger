@@ -1,5 +1,8 @@
 package net.unpluggedmc.skinchanger.Utils;
 
+import com.google.gson.Gson;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.mojang.authlib.GameProfile;
 import com.mojang.authlib.properties.Property;
 import net.minecraft.server.v1_16_R3.*;
@@ -11,6 +14,12 @@ import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.ItemStack;
 
+import java.io.BufferedReader;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.UUID;
 
@@ -22,12 +31,27 @@ public class Utils {
         this.plugin = plugin;
     }
 
+    public void resetOnError(Player p) {
+        CraftPlayer player = (CraftPlayer) p;
+
+        player.getHandle().playerConnection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, player.getHandle()));
+
+        performClientUpdate(p);
+    }
+
+    public void sendBlackScreenOfDeath(Player p) {
+
+        CraftPlayer player = (CraftPlayer) p;
+
+        player.getHandle().playerConnection.sendPacket(new PacketPlayOutGameStateChange(PacketPlayOutGameStateChange.e, 0));
+    }
+
     public void performClientUpdate(Player p) {
 
         CraftPlayer player = (CraftPlayer) p;
         PlayerConnection connection = player.getHandle().playerConnection;
 
-        player.setPlayerListName(player.getName());
+        connection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, player.getHandle()));
 
         Location loc = p.getLocation().clone();
         HashMap<Integer, ItemStack> items = new HashMap<>();
@@ -86,6 +110,8 @@ public class Utils {
         items.forEach((integer, itemStack) -> {
             player.getInventory().setItem(integer, itemStack);
         });
+
+        connection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, player.getHandle()));
     }
 
     public void performServerSideUpdate(Player p) {
@@ -114,16 +140,75 @@ public class Utils {
         performServerSideUpdate(p);
         performClientUpdate(p);
     }
+    public Property getSkin(UUID target) {
 
-    public GameProfile constructGameProfile(String name) {
-        GameProfile profile = new GameProfile(UUID.fromString("21ac0e4a-fa9e-4213-aae8-b6f906025062"), "§f[§cYOUTUBE§f] §7DennisUnplugged");
+        String url = "https://sessionserver.mojang.com/session/minecraft/profile/" + target.toString() + "?unsigned=false";
 
+        try {
+            URL site = new URL(url);
+
+            HttpURLConnection connection = (HttpURLConnection) site.openConnection();
+
+            connection.setRequestMethod("GET");
+
+            connection.connect();
+
+            InputStream input = connection.getInputStream();
+
+            BufferedReader reader = new BufferedReader(new InputStreamReader(input, StandardCharsets.UTF_8));
+
+            StringBuffer buffer = new StringBuffer();
+
+            String line;
+
+            while ((line = reader.readLine()) != null) {
+
+                buffer.append(line.trim());
+
+            }
+
+            reader.close();
+            connection.disconnect();
+
+            String result = buffer.toString();
+
+            JsonObject object = (JsonObject) (new Gson()).fromJson(result, JsonObject.class);
+
+            JsonArray array = object.getAsJsonArray("properties");
+
+            String texture = new String(array.get(0).getAsJsonObject().get("value").getAsString());
+            String signature = new String(array.get(0).getAsJsonObject().get("signature").getAsString());
+
+            return new Property("textures", texture, signature);
+        } catch (Exception x) {
+
+            return null;
+        }
+
+
+    }
+
+    public Property getVerifiedTextures(String name) {
+        UUIDHelper uuidHelper = new UUIDHelper();
+        UUID uuid = uuidHelper.nameToUUID(name);
+        if (uuid == null) {
+            return null;
+        }
+        Property textures = getSkin(uuid);
+
+        if (textures == null) {
+            return null;
+        }
+
+        return textures;
+    }
+
+    public void changeTextureFromProfile(GameProfile profile, Property textures) {
         profile.getProperties().removeAll("textures");
+        profile.getProperties().put("textures", textures);
+    }
 
-        profile.getProperties().put("textures", new Property("textures",
-                "ewogICJ0aW1lc3RhbXAiIDogMTYyMTE2Mzk3MjExOSwKICAicHJvZmlsZUlkIiA6ICIyMWFjMGU0YWZhOWU0MjEzYWFlOGI2ZjkwNjAyNTA2MiIsCiAgInByb2ZpbGVOYW1lIiA6ICJEZW5uaXNVbnBsdWdnZWQiLAogICJzaWduYXR1cmVSZXF1aXJlZCIgOiB0cnVlLAogICJ0ZXh0dXJlcyIgOiB7CiAgICAiU0tJTiIgOiB7CiAgICAgICJ1cmwiIDogImh0dHA6Ly90ZXh0dXJlcy5taW5lY3JhZnQubmV0L3RleHR1cmUvMTIyZjc4YThmNTc1ZTliOGRlYzhiZGQ4ZGM2MDUzZjYyYTBmZWNlZmExYzg5MzAxMTgwYzlkNjdkZWJhMjhhNCIsCiAgICAgICJtZXRhZGF0YSIgOiB7CiAgICAgICAgIm1vZGVsIiA6ICJzbGltIgogICAgICB9CiAgICB9CiAgfQp9",
-                "TGthesYWPa6VIC5dX+QeqbwIXFDutYJtb8LsTMhBCZV5W41/a5VZjIrX5MeuMmnHeswcczNqi+8mBx0bnK6osuH1C2wXvlkbEfVwshD1f1gEFZYELCxzKc0qk0W1aYx2I1i96b3oHTPul3QdmDlVBm0qxEesun7iFK7Co7uB9F4qcHfXh5IcVPTu3U/3Uhd60WHw31Exuj7oCIa/1Xgdhnnwj8Rw8gY2gO5qTYcy74pCIoKssDftwmkzB6igN9lT/f8fh7eH8+e8raZhUh5f6j8S+9eyDx2ahLYA8eaU6W2WOY3QgKPAwI7G/1os1OvopHV6me5zxdNToSAALw59SVeZkrVZ7119SZ/a+/2r/o/z5DVB6hrbAceo4krum7A+lV0SCwvFk2odkHTghgkQNpbSQyW46T+mjmYxZkbZW2KYJhnRzo7kQAzlTxMnlTLYwWyTWJ/CMRHSJ+DzGswJ5WP9aQlhxMl1CT5EkMYVyyRw8vHJbdWFnBTQrSGwiltzbs9cCwP8RkAiBQAtC5dBtydwG8c2FaTHKjTKOxUU0uTQ9Gt7yoDVuDDI9KLycNgHGdvwuSGvBLHgBdfmZGr2DC7dml0WN+SmlrXrpNQUfNHGyee40vSUOy5nNbdP4IfJrYZcaUZugQ52UuGKiBmlGxIu+Z571kRhdSGCbvunni8="));
-
-        return profile;
+    private Property testTextures() {
+        return new Property("textures", "ewogICJ0aW1lc3RhbXAiIDogMTYyMDU0NzY0NDEzOCwKICAicHJvZmlsZUlkIiA6ICJiZDNkZDVhNDA0Mzg0Njk5YjJmZDM2ZjUxODE1NGI0MSIsCiAgInByb2ZpbGVOYW1lIiA6ICJHZW9yZ2VOb3RGb3VuZCIsCiAgInNpZ25hdHVyZVJlcXVpcmVkIiA6IHRydWUsCiAgInRleHR1cmVzIiA6IHsKICAgICJTS0lOIiA6IHsKICAgICAgInVybCIgOiAiaHR0cDovL3RleHR1cmVzLm1pbmVjcmFmdC5uZXQvdGV4dHVyZS8yZDc1NTI2NzgwNTg3MjBmODkyMGJjZWU2ODJhYzRlNzQ3NWU0MWUyMTU1YWU2NzAwYjJhNTgzODlmNWI2NGY2IgogICAgfQogIH0KfQ==", "QomENv7nZHS5QTZSHm52neKU6eTQYWR7c/kIfDfRDJRrbSUPnuhNkvwpbW1jn5IsZc23Mrh2BEl16NJiUxM2sKQwMGIoIm2x0kR852jQ6SrgTZNHWUcMt5INMFwkqxKIq2vWNMmTcXTX/z9kX1sUUPMJQhlivSbmx6LqKWNRzW4l9TKsu+LIojJ50qmHh/4pNNGMn8h/HLaVQ1hrFYqkAeaCPIsqlq4uFiscRdWiEZ+eC9Jhs1SePE8t5lhFteBVMDqMMKWFTlt1VblGP5QnSc4ybkyjc/BFw2HA3qhsEfr4X50wLdfNtLDNiXdtIGLvvsWBXCOQY0Upf2p88ZpufB8Om9UGoGi3PRVeNm4JR8wtL4KxDGZXBCMOm88foyqQ1Z1q59BK/GKtLymYXddyXLNw4hPv4ZXyKLVVJEfX9r35fk5OFk6GQFuvHEJpT7bAqKQ15kE1nIDfWLCLyC69QFmDV5ph9exj4vB6RAwlGdApn7VSWAF/GTO76irJl9NE06WQLeQLGYXgFgSWEtCC6wngBlVXZ0iCbjfbneu5oYCAhA/vzkiCrX7ApcJBXeVFHNX9FF0m7PA6BtXEyg1RhCoZJ3eNv42pnGGt+dsvGFWW8lZtCWbDKSZUQ+AUGZMipCfpdYzPczvWmi90lrVhPB/71MmBasJuOqWj3odV55g=");
     }
 }
