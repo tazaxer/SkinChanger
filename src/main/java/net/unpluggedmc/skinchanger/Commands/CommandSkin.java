@@ -64,7 +64,7 @@ public class CommandSkin implements CommandExecutor {
                 try {
                     p = Bukkit.getPlayer(args[1]);
                 } catch (Exception x) {
-                    sender.sendMessage(ChatColor.RED + "The target player doesn't exist!");
+                    sender.sendMessage(ChatColor.DARK_RED + "The target player doesn't exist!");
                 }
 
             } else {
