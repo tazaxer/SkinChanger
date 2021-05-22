@@ -15,7 +15,7 @@ public final class SkinChanger extends JavaPlugin {
         new CommandSkin(this);
         new CommandFoo(this);
         this.utils = new Utils(this);
-        getLogger().info("The dog fell asleep!");
+        getLogger().info("The dog woke up!");
 
     }
 
