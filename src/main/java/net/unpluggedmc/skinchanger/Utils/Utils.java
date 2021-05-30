@@ -115,24 +115,26 @@ public class Utils {
     }
 
     public void performServerSideUpdate(Player p) {
-        CraftPlayer craftPlayer = (CraftPlayer) p;
+        CraftPlayer player = (CraftPlayer) p;
+
 
         Bukkit.getOnlinePlayers().stream().filter(currentPlayer -> currentPlayer.getUniqueId() != p.getUniqueId()).forEach(ps -> {
-            ps.hidePlayer(plugin, p);
 
-            PacketPlayOutPlayerInfo pr = new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, craftPlayer.getHandle());
-            ((CraftPlayer)ps).getHandle().playerConnection.sendPacket(pr);
-            PacketPlayOutEntityDestroy d = new PacketPlayOutEntityDestroy(p.getEntityId());
-            ((CraftPlayer)ps).getHandle().playerConnection.sendPacket(d);
+            ps.hidePlayer(plugin, player);
 
-            Bukkit.getScheduler().runTaskLater(plugin, () -> {
-                PacketPlayOutPlayerInfo pa = new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, craftPlayer.getHandle());
-                ((CraftPlayer)ps).getHandle().playerConnection.sendPacket(pa);
-                PacketPlayOutNamedEntitySpawn ns = new PacketPlayOutNamedEntitySpawn(craftPlayer.getHandle());
-                ((CraftPlayer)ps).getHandle().playerConnection.sendPacket(ns);
+            Packet<?> tabChange = new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.REMOVE_PLAYER, player.getHandle());
+            ((CraftPlayer)ps).getHandle().playerConnection.sendPacket(tabChange);
 
-                ps.showPlayer(plugin, p);
+            player.getHandle().playerConnection.sendPacket(new PacketPlayOutEntityDestroy(player.getEntityId()));
+
+
+            Bukkit.getServer().getScheduler().runTaskLater(this.plugin, () -> {
+                ((CraftPlayer)ps).getHandle().playerConnection.sendPacket(new PacketPlayOutNamedEntitySpawn(player.getHandle()));
+                ((CraftPlayer)ps).getHandle().playerConnection.sendPacket(new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, player.getHandle()));
+
+                ((CraftPlayer) ps).showPlayer(plugin, p);
             }, 5);
+
         });
     }
 

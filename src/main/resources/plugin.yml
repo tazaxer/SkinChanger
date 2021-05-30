@@ -15,3 +15,6 @@ commands:
     permission: skinchanger.commands.foo
     aliases: [test]
     usage: §cWrong Syntax! /foo [possibleArgs]
+  nick:
+    description: The command to change your nickname!
+    usage: §cWrong Syntax! /nick <name> [targetPlayer]
