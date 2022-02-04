@@ -48,21 +48,7 @@ public class CommandFoo implements CommandExecutor {
         Player p = (Player) sender;
         PlayerConnection connection = ((CraftPlayer)p).getHandle().playerConnection;
 
-        //SUBTRACT THE LOCATION BY 1 (TODO: wrong way fix asap)
-        Location loc = new Location(p.getLocation().getWorld(), p.getLocation().getX()-1, p.getLocation().getY(), p.getLocation().getZ()-1);
 
-        BlockData data = Bukkit.createBlockData(Material.OAK_SIGN);
-
-        PacketPlayOutBlockChange blockChange = new PacketPlayOutBlockChange(((CraftWorld)p.getWorld()).getHandle(), new BlockPosition(loc.getX(), loc.getY(), loc.getZ()));
-        blockChange.block = ((CraftBlockData)data).getState();
-
-        connection.sendPacket(blockChange);
-
-        p.sendSignChange(loc, new String[]{"", "^^^^", "Enter Your", "Nickname Here!"});
-        //PREPARE SIGN EDITOR
-        PacketPlayOutOpenSignEditor signEditor = new PacketPlayOutOpenSignEditor(new BlockPosition(loc.getX(), loc.getY(), loc.getZ()));
-
-        connection.sendPacket(signEditor); //SEND SIGN EDITOR
         plugin.getLogger().info("Sign Editor Sent!");
         return true;
     }

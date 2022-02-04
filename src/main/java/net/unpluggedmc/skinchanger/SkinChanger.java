@@ -23,6 +23,14 @@ public final class SkinChanger extends JavaPlugin {
 
     @Override
     public void onEnable() {
+        super.onEnable();
+        saveDefaultConfig();
+
+        if (!getConfig().getBoolean("power")) {
+            getServer().getPluginManager().disablePlugin(this);
+            return;
+        }
+
         new Join(this);
         new Quit(this);
         new SignEditComplete(this);
@@ -33,7 +41,7 @@ public final class SkinChanger extends JavaPlugin {
         new CommandSkin(this);
         new CommandFoo(this);
         this.utils = new Utils(this);
-        this.packetHandlerManager = new PacketHandlerManager();
+        this.packetHandlerManager = new PacketHandlerManager(this);
 
         getLogger().info("SkinChanger enabled!");
     }

@@ -5,16 +5,20 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelPromise;
 import net.minecraft.server.v1_16_R3.Packet;
 import net.minecraft.server.v1_16_R3.PacketPlayInUpdateSign;
+import net.unpluggedmc.skinchanger.SkinChanger;
 import org.bukkit.Bukkit;
+import org.bukkit.scheduler.BukkitRunnable;
 
 import java.util.UUID;
 
 public class PlayerChannelDuplexHandler extends ChannelDuplexHandler {
 
     private UUID player;
+    private SkinChanger plugin;
 
-    public PlayerChannelDuplexHandler(UUID player) {
+    public PlayerChannelDuplexHandler(SkinChanger plugin, UUID player) {
         this.player = player;
+        this.plugin = plugin;
     }
 
     @Override
@@ -27,9 +31,8 @@ public class PlayerChannelDuplexHandler extends ChannelDuplexHandler {
 
         PacketPlayInUpdateSign updateSign = (PacketPlayInUpdateSign) packet;
 
-        Bukkit.getLogger().info("UPDATE SIGN PACKET READ!");
-        PlayerCompleteSignEditEvent event = new PlayerCompleteSignEditEvent(player, updateSign);
-        Bukkit.getPluginManager().callEvent(event);
+        Bukkit.getScheduler().runTask(plugin, () -> Bukkit.getPluginManager().callEvent(new PlayerCompleteSignEditEvent(player, updateSign)));
+
         Bukkit.getLogger().info("EVENT FIRED!");
         super.channelRead(ctx, packet);
     }

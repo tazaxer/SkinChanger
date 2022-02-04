@@ -17,6 +17,7 @@ import org.bukkit.inventory.ItemStack;
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.reflect.Field;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
@@ -135,6 +136,123 @@ public class Utils {
                 ((CraftPlayer) ps).showPlayer(plugin, p);
             }, 5);
 
+        });
+    }
+
+    public void setNickname(Player bukkitPlayer, String nickname) {
+        Field gameProfileField = null;
+        CraftPlayer craftPlayer = (CraftPlayer) bukkitPlayer;
+        EntityHuman nmsPlayer = craftPlayer.getHandle();
+        try {
+            gameProfileField = EntityHuman.class.getDeclaredField("bJ");
+            gameProfileField.setAccessible(true);
+
+            gameProfileField.set(nmsPlayer, new GameProfile(bukkitPlayer.getUniqueId(), nickname));
+        } catch (Exception x) {
+            x.printStackTrace();
+        }
+    }
+
+    public boolean isMcName(String s) {
+        if (s == null) // checks if the String is null {
+            return false;
+
+        //abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_
+
+        int len = s.length();
+        for (int i = 0; i < len; i++) {
+
+            switch (s.charAt(i)) {
+                case 'a' :
+                case 'b' :
+                case 'c' :
+                case 'd' :
+                case 'e' :
+                case 'f' :
+                case 'g' :
+                case 'h' :
+                case 'i' :
+                case 'j' :
+                case 'k' :
+                case 'l' :
+                case 'm' :
+                case 'n' :
+                case 'o' :
+                case 'p' :
+                case 'q' :
+                case 'r' :
+                case 's' :
+                case 't' :
+                case 'u' :
+                case 'v' :
+                case 'w' :
+                case 'x' :
+                case 'y' :
+                case 'z' :
+
+                case 'A' :
+                case 'B' :
+                case 'C' :
+                case 'D' :
+                case 'E' :
+                case 'F' :
+                case 'G' :
+                case 'H' :
+                case 'I' :
+                case 'J' :
+                case 'K' :
+                case 'L' :
+                case 'M' :
+                case 'N' :
+                case 'O' :
+                case 'P' :
+                case 'Q' :
+                case 'R' :
+                case 'S' :
+                case 'T' :
+                case 'U' :
+                case 'V' :
+                case 'W' :
+                case 'X' :
+                case 'Y' :
+                case 'Z' :
+                case '_' :
+                case '0' :
+                case '1' :
+                case '2' :
+                case '3' :
+                case '4' :
+                case '5' :
+                case '6' :
+                case '7' :
+                case '8' :
+                case '9' :
+
+                    break;
+
+                default: return false;
+            }
+        }
+        return true;
+    }
+
+    public void sendNicknameUpdate(CraftPlayer craftPlayer) {
+        PacketPlayOutPlayerInfo packet = new PacketPlayOutPlayerInfo(PacketPlayOutPlayerInfo.EnumPlayerInfoAction.ADD_PLAYER, craftPlayer.getHandle());
+
+        craftPlayer.getHandle().playerConnection.sendPacket(packet);
+
+        Bukkit.getOnlinePlayers().stream().filter(currentplayer -> currentplayer.getUniqueId() != craftPlayer.getUniqueId()).forEach(ps -> {
+            ps.hidePlayer(plugin, craftPlayer);
+
+            ((CraftPlayer) ps).getHandle().playerConnection.sendPacket(new PacketPlayOutEntityDestroy(craftPlayer.getEntityId()));
+            ((CraftPlayer) ps).getHandle().playerConnection.sendPacket(new PacketPlayOutNamedEntitySpawn(craftPlayer.getHandle()));
+            ((CraftPlayer) ps).getHandle().playerConnection.sendPacket(packet);
+
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+
+                ((CraftPlayer) ps).showPlayer(plugin, craftPlayer);
+
+            }, 5);
         });
     }
 

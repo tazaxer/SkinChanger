@@ -12,7 +12,7 @@ import java.util.List;
 import java.util.UUID;
 
 
-public class PlayerCompleteSignEditEvent extends Event {
+public class PlayerCompleteSignEditEvent extends Event    {
 
     private static final HandlerList handlerList = new HandlerList();
     private final UUID player;
@@ -21,7 +21,7 @@ public class PlayerCompleteSignEditEvent extends Event {
 
 
     public PlayerCompleteSignEditEvent(UUID player, PacketPlayInUpdateSign packet) {
-        super(true);
+        super(false);
         this.player = player;
         this.lines = packet.c();
         this.location = new Location(Bukkit.getPlayer(player).getWorld(), packet.b().getX(), packet.b().getY(), packet.b().getZ());
