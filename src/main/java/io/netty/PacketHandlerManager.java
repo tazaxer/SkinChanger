@@ -1,15 +1,15 @@
 package io.netty;
 
-import io.netty.channel.*;
-import net.minecraft.server.v1_16_R3.PacketPlayInUpdateSign;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelDuplexHandler;
+import io.netty.channel.ChannelPipeline;
 import net.unpluggedmc.skinchanger.SkinChanger;
-import org.bukkit.Bukkit;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
 
 public class PacketHandlerManager {
 
-    private SkinChanger plugin;
+    private final SkinChanger plugin;
 
     public PacketHandlerManager(SkinChanger plugin) {
         this.plugin = plugin;
@@ -17,7 +17,7 @@ public class PacketHandlerManager {
 
     public void injectPlayer(Player p) {
 
-        ChannelDuplexHandler handler = new PlayerChannelDuplexHandler;
+        ChannelDuplexHandler handler = new PlayerChannelDuplexHandler(plugin, p.getUniqueId());
 
 
         ChannelPipeline pipeline = ((CraftPlayer)p).getHandle().playerConnection.networkManager.channel.pipeline();
