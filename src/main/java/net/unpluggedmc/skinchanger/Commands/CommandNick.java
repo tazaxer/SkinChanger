@@ -1,7 +1,9 @@
 package net.unpluggedmc.skinchanger.Commands;
 
-import com.mojang.authlib.GameProfile;
-import net.minecraft.server.v1_16_R3.*;
+import net.minecraft.server.v1_16_R3.BlockPosition;
+import net.minecraft.server.v1_16_R3.PacketPlayOutBlockChange;
+import net.minecraft.server.v1_16_R3.PacketPlayOutOpenSignEditor;
+import net.minecraft.server.v1_16_R3.PlayerConnection;
 import net.unpluggedmc.skinchanger.SkinChanger;
 import org.bukkit.Bukkit;
 import org.bukkit.ChatColor;
@@ -15,8 +17,6 @@ import org.bukkit.craftbukkit.v1_16_R3.CraftWorld;
 import org.bukkit.craftbukkit.v1_16_R3.block.data.CraftBlockData;
 import org.bukkit.craftbukkit.v1_16_R3.entity.CraftPlayer;
 import org.bukkit.entity.Player;
-
-import java.lang.reflect.Field;
 
 public class CommandNick implements CommandExecutor {
 
@@ -36,14 +36,7 @@ public class CommandNick implements CommandExecutor {
 
         String nickname = null;
         Player targetPlayer = null;
-			
-			switch (args.length) {
-			
-				case 1:
-					Player targetPlayer = (Player) sender;
-					openSingEditor(targetPlayer);
-					
-			}
+
         if (args.length == 1) {
             nickname = args[0];
             targetPlayer = (Player) sender;

@@ -41,7 +41,7 @@
                         </goals>
                         <configuration>
                             <createDependencyReducedPom>false</createDependencyReducedPom>
-                            <outputFile>C:\Users\Dennis Gyftakis\Desktop\1.16 SMP\plugins\${project.artifactId}.jar</outputFile>
+                            <outputFile>/Users/dennis/Documents/Minecraft Spigot Server 1.16.5/plugins/${project.artifactId}.jar</outputFile>
                         </configuration>
                     </execution>
                 </executions>
